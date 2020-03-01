@@ -1,18 +1,18 @@
-# pushokku
+# Pushokku
 
-TODO: Write a description here
+Push docker image to remote dokku server then deploy it
 
 ## Installation
 
-TODO: Write installation instructions here
+Run the following comand
+
+    make build
 
 ## Usage
 
-TODO: Write usage instructions here
+Show help
 
-## Development
-
-TODO: Write development instructions here
+    ./pushokku --help
 
 ## Contributing
 
@@ -25,3 +25,4 @@ TODO: Write development instructions here
 ## Contributors
 
 - [Glenn Y. Rolland](https://github.com/glenux) - creator and maintainer
+
