@@ -12,7 +12,15 @@ Run the following comand
 
 Show help
 
-    ./pushokku --help
+```shell-session
+$ ./pushokku --help
+Welcome to Pushokku!
+    -c CONFIG, --config=CONFIG       Use the following config file
+    -f DOCKER_COMPOSE_YML, --config=DOCKER_COMPOSE_YML
+                                     Use the following docker-compose file
+    -v, --version                    Show version
+    -h, --help                       Show help
+```
 
 ## Contributing
 
