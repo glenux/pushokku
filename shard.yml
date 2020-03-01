@@ -1,0 +1,13 @@
+name: pushokku
+version: 0.1.0
+
+authors:
+  - Glenn Y. Rolland <glenux@glenux.net>
+
+targets:
+  pushokku:
+    main: src/pushokku.cr
+
+crystal: 0.31.1
+
+license: MIT
