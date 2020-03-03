@@ -1,5 +1,5 @@
 ---
-name: Crystal CI
+name: Build
 
 on: [push]
 
