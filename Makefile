@@ -1,8 +1,11 @@
 
+LDFLAGS=
+#LDFLAGS=--no-debug
+
 all: build
 
 build:
-	crystal src/pushokku.cr -o pushokku
+	crystal build $(LDFLAGS) src/pushokku.cr -o pushokku
 
 test:
 
