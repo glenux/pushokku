@@ -4,11 +4,18 @@
 
 Push docker image to remote dokku server then deploy it
 
+
+## Prerequisites
+
+Make sure you have crystal (>= 0.31) installed on your system.
+
+
 ## Installation
 
-Run the following comand
+Run the following command:
 
     make build
+
 
 ## Usage
 
