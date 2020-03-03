@@ -1,5 +1,7 @@
 # Pushokku
 
+![Build](https://github.com/glenux/pushokku/workflows/Crystal%20CI/badge.svg)
+
 Push docker image to remote dokku server then deploy it
 
 ## Installation
