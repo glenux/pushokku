@@ -11,12 +11,12 @@ jobs:
       image: crystallang/crystal
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Install dependencies
-      run: shards install
-    - name: Build
-      run: make test
-    - name: Tests
-      run: make test
-    - name: install
-      run: make install
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: shards install
+      - name: Build
+        run: make build
+      - name: Tests
+        run: make test
+      - name: install
+        run: make install
