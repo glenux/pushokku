@@ -9,13 +9,15 @@ all: build
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
 
-build: clean $(BUILDDIR)
+$(BUILDDIR)/pushokku:
 	crystal build $(LDFLAGS) src/pushokku.cr -o $(BUILDDIR)/pushokku
+
+build: $(BUILDDIR)/pushokku
 
 build-release: LDFLAGS=--release --no-debug
 build-release: build
 
-install:
+install: build
 	install -m 0755 -o root -g root \
 		$(BUILDDIR)/pushokku \
 		$(DESTDIR)/bin/pushokku
