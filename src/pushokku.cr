@@ -3,6 +3,8 @@ require "option_parser"
 require "yaml"
 require "colorize"
 
+
+
 class Pushokku
   alias Options = {
     config_file: String,
@@ -49,6 +51,7 @@ class Pushokku
   end
 
   def load_config(config_file : String) : Config
+    puts "Loading configuration...".colorize(:yellow)
     if ! File.exists? config_file 
       STDERR.puts "ERROR: Unable to read configuration file '#{config_file}'"
       exit 1
@@ -73,6 +76,7 @@ class Pushokku
     Process.run "docker", ["tag", image, tag_name_version]
 
     res = {
+      app: app,
       version: version,
       tag_name_version: tag_name_version
     }
@@ -86,35 +90,29 @@ class Pushokku
     #     | gzip \
     #     | ssh "$HOST_REMOTE" "gunzip | docker load"
 
-
     pipe1_reader, pipe1_writer = IO.pipe(true)
     pipe2_reader, pipe2_writer = IO.pipe(true)
 
     p3_out = IO::Memory.new
-    p3_err = IO::Memory.new
     puts "Pushing image...".colorize(:yellow)
     p3 = Process.new "ssh", [host, "gunzip | docker load"], 
-      input: pipe2_reader, output: p3_out, error: p3_err
+      input: pipe2_reader, output: p3_out, error: STDERR
 
-    p2_err = IO::Memory.new
     p2 = Process.new "gzip",
       input: pipe1_reader, 
       output: pipe2_writer,
-      error: p2_err
+      error: STDERR
     
-    p1_err = IO::Memory.new
     p1 = Process.new "docker", ["save", tag_name_version], 
       output: pipe1_writer, 
-      error: p1_err
+      error: STDERR
 
     status = p1.wait
     pipe1_writer.close
     if status.success? 
-      puts "Docker image successfully exported"
+      puts "-----> Docker image successfully exported"
     else 
-      STDERR.puts "Error when exporting docker image!"
-      STDERR.puts "- exit status: #{status.exit_status}"
-      STDERR.puts "- err: #{p1_err}"
+      STDERR.puts "Error (code #{status.exit_status}) when exporting docker image!"
       exit 1
     end
 
@@ -122,28 +120,28 @@ class Pushokku
     pipe1_reader.close
     pipe2_writer.close
     if ! status.success?
-      STDERR.puts "Error when gzipping image!"
-      STDERR.puts "- exit status: #{status.exit_status}"
-      STDERR.puts "- err: #{p2_err}"
+      STDERR.puts "Error (code #{status.exit_status}) when gzipping image!"
     end
 
     status = p3.wait
     pipe2_reader.close
     if status.success?
-      puts "Docker image successfully imported on #{host}"
-      # puts "- out : #{p3_out}"
+      puts "-----> Docker image successfully imported on #{host}"
     else
-      STDERR.puts "Error when importing docker image!"
-      STDERR.puts "- exit status: #{status.exit_status}"
-      STDERR.puts "- err: #{p3_err}"
+      STDERR.puts "Error (code #{status.exit_status}) when importing docker image!"
     end
     puts "Image pushed successfully!".colorize(:green)
   end
 
   def image_deploy(host, app, version)
-    puts "Deploying image...".colorize(:yellow)
-    Process.run "ssh", [host, "dokku tags:deploy #{app} #{version}"]
-    puts "Image deployed successfully!".colorize(:green)
+    puts "Deploying image #{app}:#{version}...".colorize(:yellow)
+    status = Process.run "ssh", [host, "dokku tags:deploy #{app} #{version}"],
+      output: STDOUT, error: STDOUT
+    if status.success?
+      puts "Image deployed successfully!".colorize(:green)
+    else
+      STDERR.puts "Error (code #{status.exit_status}) when deploying image!"
+    end
   end
 
   def self.run(args) 
@@ -153,7 +151,7 @@ class Pushokku
     # env_config = App.get_config(config, opts["environment"])
     image_meta = app.image_tag(opts["docker_compose_yml"], config["service"], config["app"])
     app.image_push(config["host"], image_meta["tag_name_version"])
-    app.image_deploy(config["host"], config["app"], image_meta["tag_name_version"])
+    app.image_deploy(config["host"], image_meta["app"], image_meta["version"])
   end
 end
 
