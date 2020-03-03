@@ -19,7 +19,11 @@ install:
 	install -m 0755 -o root -g root \
 		$(BUILDDIR)/pushokku \
 		$(DESTDIR)/bin/pushokku
-test:
+
+spec:
+	crystal spec
+
+test: spec
 
 run:
 	crystal run src/pushokku.cr
