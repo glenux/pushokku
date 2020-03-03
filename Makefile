@@ -9,7 +9,7 @@ all: build
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
 
-$(BUILDDIR)/pushokku:
+$(BUILDDIR)/pushokku: $(BUILDDIR)
 	crystal build $(LDFLAGS) src/pushokku.cr -o $(BUILDDIR)/pushokku
 
 build: $(BUILDDIR)/pushokku
