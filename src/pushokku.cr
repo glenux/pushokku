@@ -1,6 +1,7 @@
 # file: help.cr
 require "option_parser"
 require "yaml"
+require "colorize"
 
 class Pushokku
   alias Options = {
@@ -16,7 +17,7 @@ class Pushokku
   }
 
   def parse_options(args) : Options
-    config_file = ".pushokku"
+    config_file = ".pushokku.yml"
     docker_compose_yml = "docker-compose.yml"
     environment = "production"
     
@@ -91,6 +92,7 @@ class Pushokku
 
     p3_out = IO::Memory.new
     p3_err = IO::Memory.new
+    puts "Pushing image...".colorize(:yellow)
     p3 = Process.new "ssh", [host, "gunzip | docker load"], 
       input: pipe2_reader, output: p3_out, error: p3_err
 
@@ -135,10 +137,13 @@ class Pushokku
       STDERR.puts "- exit status: #{status.exit_status}"
       STDERR.puts "- err: #{p3_err}"
     end
+    puts "Image pushed successfully!".colorize(:green)
   end
 
   def image_deploy(host, app, version)
+    puts "Deploying image...".colorize(:yellow)
     Process.run "ssh", [host, "dokku tags:deploy #{app} #{version}"]
+    puts "Image deployed successfully!".colorize(:green)
   end
 
   def self.run(args) 
