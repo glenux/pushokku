@@ -3,157 +3,108 @@ require "option_parser"
 require "yaml"
 require "colorize"
 
+require "./config"
+require "./deployment"
 
-
-class Pushokku
-  alias Options = {
-    config_file: String,
-    docker_compose_yml: String,
-    environment: String
-  }
-
-  alias Config = {
-    host: String,
-    service: String,
-    app: String
-  }
-
-  def parse_options(args) : Options
-    config_file = ".pushokku.yml"
-    docker_compose_yml = "docker-compose.yml"
-    environment = "production"
-    
-    OptionParser.parse(args) do |parser|
-      parser.banner = "Welcome to Pushokku!"
-
-      parser.on "-c CONFIG", "--config=CONFIG", "Use the following config file" do |file|
-        config_file = file
-      end
-
-      parser.on "-f DOCKER_COMPOSE_YML", "--config=DOCKER_COMPOSE_YML", "Use the following docker-compose file" do |file|
-        docker_compose_yml = file
-      end
-
-      parser.on "-v", "--version", "Show version" do
-        puts "version 1.0"
-        exit
-      end
-      parser.on "-h", "--help", "Show help" do
-        puts parser
-        exit
-      end
-    end
-    return { 
-      docker_compose_yml: docker_compose_yml,
-      config_file: config_file,
-      environment: environment
+module Pushokku
+  class Cli
+    alias Options = {
+      config_file: String,
+      docker_compose_yml: String,
+      environment: String
     }
-  end
 
-  def load_config(config_file : String) : Config
-    puts "Loading configuration...".colorize(:yellow)
-    if ! File.exists? config_file 
-      STDERR.puts "ERROR: Unable to read configuration file '#{config_file}'"
-      exit 1
+    def parse_options(args) : Options
+      config_file = ".pushokku.yml"
+      docker_compose_yml = "docker-compose.yml"
+      environment = "production"
+
+      OptionParser.parse(args) do |parser|
+        parser.banner = "Welcome to Pushokku!"
+
+        parser.on "-c CONFIG", "--config=CONFIG", "Use the following config file" do |file|
+          config_file = file
+        end
+
+        parser.on "-f DOCKER_COMPOSE_YML", "--config=DOCKER_COMPOSE_YML", "Use the following docker-compose file" do |file|
+          docker_compose_yml = file
+        end
+
+        parser.on "-v", "--version", "Show version" do
+          puts "version 1.0"
+          exit
+        end
+        parser.on "-h", "--help", "Show help" do
+          puts parser
+          exit
+        end
+      end
+      return { 
+        docker_compose_yml: docker_compose_yml,
+        config_file: config_file,
+        environment: environment
+      }
     end
 
-    yaml = File.open(config_file) do |file|
-      YAML.parse(file)
+    def load_config(config_file : String) : Config
+      puts "Loading configuration...".colorize(:yellow)
+      if ! File.exists? config_file 
+        STDERR.puts "ERROR: Unable to read configuration file '#{config_file}'"
+        exit 1
+      end
+
+      yaml_str = File.read(config_file)
+      config = Config.from_yaml(yaml_str)
+      # yaml = YAML.parse(yaml_str)
+
+      if config.nil?
+        STDERR.puts "ERROR: Invalid YAML content in '#{config_file}'"
+        exit 1
+      end
+
+      return config
     end
 
-    { 
-      host: yaml["host"].to_s,
-      service: yaml["service"].to_s,
-      app: yaml["app"].to_s
-    }
-  end
 
-  def image_tag(docker_compose_yml : String, service : String, app : String)
-    version = `date +"v%Y%m%d_%H%M"`.strip
-    tag_name = "dokku/#{app}"
-    tag_name_version = "#{tag_name}:#{version}"
-    image = `docker-compose -f #{docker_compose_yml} images -q #{service} `.strip
-    Process.run "docker", ["tag", image, tag_name_version]
+    def self.run(args) 
+      app = Cli.new
+      opts = app.parse_options(args)
+      config = app.load_config(opts["config_file"])
+      # env_config = App.get_config(config, opts["environment"])
 
-    res = {
-      app: app,
-      version: version,
-      tag_name_version: tag_name_version
-    }
-    puts YAML.dump({ image_tag: res })
-    puts "---"
-    return res
-  end
+      deployment_classes = [ 
+        DockerImageToDokkuApp,
+        MysqlDumpToDokkuMariadb
+      ]
 
-  def image_push(host, tag_name_version)
-    # docker save "$TAG_NAME_VERSION" \
-    #     | gzip \
-    #     | ssh "$HOST_REMOTE" "gunzip | docker load"
+      config.deployments.each do |deployment|
+        local = config.locals.select { |l| l.name == deployment.local }.first
+        remote = config.remotes.select { |r| r.name == deployment.remote }.first
+        if local.nil?
+          puts "Unknown local #{deployment.local}. Exiting."
+          exit 2
+        end
+        if remote.nil?
+          puts "Unknown remote #{deployment.remote}. Exiting."
+          exit 2
+        end
 
-    pipe1_reader, pipe1_writer = IO.pipe(true)
-    pipe2_reader, pipe2_writer = IO.pipe(true)
+        deployment_handler = "#{local.type}_to_#{deployment.type}"
+        deployment_class = deployment_classes.select {|c| c.handler == deployment_handler }.first
+        if deployment_class.nil? 
+          puts "Unknown deloyment class for #{deployment_handler}. Exiting."
+          exit 2
+        end
 
-    p3_out = IO::Memory.new
-    puts "Pushing image...".colorize(:yellow)
-    p3 = Process.new "ssh", [host, "gunzip | docker load"], 
-      input: pipe2_reader, output: p3_out, error: STDERR
+        deployment = deployment_class.new(local, remote, deployment)
+        deployment.run
+        # puts deployment.inspect
+      end
 
-    p2 = Process.new "gzip",
-      input: pipe1_reader, 
-      output: pipe2_writer,
-      error: STDERR
-    
-    p1 = Process.new "docker", ["save", tag_name_version], 
-      output: pipe1_writer, 
-      error: STDERR
-
-    status = p1.wait
-    pipe1_writer.close
-    if status.success? 
-      puts "-----> Docker image successfully exported"
-    else 
-      STDERR.puts "Error (code #{status.exit_status}) when exporting docker image!"
-      exit 1
+      exit 2
     end
-
-    status = p2.wait
-    pipe1_reader.close
-    pipe2_writer.close
-    if ! status.success?
-      STDERR.puts "Error (code #{status.exit_status}) when gzipping image!"
-    end
-
-    status = p3.wait
-    pipe2_reader.close
-    if status.success?
-      puts "-----> Docker image successfully imported on #{host}"
-    else
-      STDERR.puts "Error (code #{status.exit_status}) when importing docker image!"
-    end
-    puts "Image pushed successfully!".colorize(:green)
-  end
-
-  def image_deploy(host, app, version)
-    puts "Deploying image #{app}:#{version}...".colorize(:yellow)
-    status = Process.run "ssh", [host, "dokku tags:deploy #{app} #{version}"],
-      output: STDOUT, error: STDOUT
-    if status.success?
-      puts "Image deployed successfully!".colorize(:green)
-    else
-      STDERR.puts "Error (code #{status.exit_status}) when deploying image!"
-    end
-  end
-
-  def self.run(args) 
-    app = Pushokku.new
-    opts = app.parse_options(args)
-    config = app.load_config(opts["config_file"])
-    # env_config = App.get_config(config, opts["environment"])
-    image_meta = app.image_tag(opts["docker_compose_yml"], config["service"], config["app"])
-    app.image_push(config["host"], image_meta["tag_name_version"])
-    app.image_deploy(config["host"], image_meta["app"], image_meta["version"])
   end
 end
 
-Pushokku.run(ARGV)
+Pushokku::Cli.run(ARGV)
 
