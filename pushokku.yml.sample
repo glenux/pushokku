@@ -1,0 +1,26 @@
+---
+
+# What to deploy
+locals:
+  - name: wordpress-image
+    type: dockerimage
+    dockerimage: sans-a-site-v2-wordpress_wordpress
+  - name: wordpress-database
+    type: file
+    file: database.sql
+
+# Where to deploy
+remotes:
+  - name: dokku-shiva-ratri
+    user: debian
+    host: shiva-ratri.infra.boldcode.io
+
+# How to deploy
+deployments:
+  - type: wordpress-image
+    remote: dokku-shiva-ratri
+    mode: dokku-app
+  - type: wordpress-database
+    remote: dokku-shiva-ratri
+    mode: dokku-mariadb
+
