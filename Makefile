@@ -1,4 +1,6 @@
 
+SOURCES=$(wildcard **/*.cr)
+
 LDFLAGS=
 DESTDIR=/usr
 
@@ -9,7 +11,7 @@ all: build
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
 
-$(BUILDDIR)/pushokku: $(BUILDDIR)
+$(BUILDDIR)/pushokku: $(BUILDDIR) $(SOURCES)
 	crystal build $(LDFLAGS) src/pushokku.cr -o $(BUILDDIR)/pushokku
 
 build: $(BUILDDIR)/pushokku
