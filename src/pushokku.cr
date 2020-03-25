@@ -14,9 +14,17 @@ module Pushokku
       environment: String
     }
 
+    @config : Config?
+    @options : Options?
+
+    def initialize
+      @options = nil
+      @config = nil
+    end
+
     def parse_options(args) : Options
-      config_file = ".pushokku.yml"
       docker_compose_yml = "docker-compose.yml"
+      config_file = ".pushokku.yml"
       environment = "production"
 
       OptionParser.parse(args) do |parser|
@@ -39,11 +47,12 @@ module Pushokku
           exit
         end
       end
-      return { 
+      @options = { 
         docker_compose_yml: docker_compose_yml,
         config_file: config_file,
         environment: environment
       }
+      return @options.as(Options)
     end
 
     def load_config(config_file : String) : Config
@@ -72,33 +81,32 @@ module Pushokku
       config = app.load_config(opts["config_file"])
       # env_config = App.get_config(config, opts["environment"])
 
-      deployment_classes = [ 
-        DockerImageToDokkuApp,
-        MysqlDumpToDokkuMariadb
-      ]
-
-      config.deployments.each do |deployment|
-        local = config.locals.select { |l| l.name == deployment.local }.first
-        remote = config.remotes.select { |r| r.name == deployment.remote }.first
+      config.deployments.each do |deployment_config|
+        local = config.locals.select { |l| l.name == deployment_config.local }.first
+        remote = config.remotes.select { |r| r.name == deployment_config.remote }.first
         if local.nil?
-          puts "Unknown local #{deployment.local}. Exiting."
+          puts "Unknown local #{deployment_config.local}. Exiting."
           exit 2
         end
         if remote.nil?
-          puts "Unknown remote #{deployment.remote}. Exiting."
+          puts "Unknown remote #{deployment_config.remote}. Exiting."
           exit 2
         end
 
-        deployment_handler = "#{local.type}_to_#{deployment.type}"
-        deployment_class = deployment_classes.select {|c| c.handler == deployment_handler }.first
-        if deployment_class.nil? 
-          puts "Unknown deloyment class for #{deployment_handler}. Exiting."
-          exit 2
-        end
 
-        deployment = deployment_class.new(local, remote, deployment)
+        deployment = 
+          case deployment_config
+          when DeploymentAppConfig then
+
+            DeploymentApp.new(local.as(LocalDockerConfig), remote, deployment_config.as(DeploymentAppConfig))
+          when DeploymentMariadbConfig then
+            DeploymentMariadb.new(local.as(LocalFileConfig), remote, deployment_config.as(DeploymentMariadbConfig))
+          when Nil
+            nil
+          end
+
+        next if deployment.nil?
         deployment.run
-        # puts deployment.inspect
       end
 
       exit 2

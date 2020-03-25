@@ -10,12 +10,23 @@ enum LocalType
   end
 end
 
-class LocalConfig
+class LocalFileConfig
   YAML.mapping(
     name: String,
     type: LocalType, # enum ?
-    docker_image: String | Nil,
-    path: String | Nil
+    path: String
   )
 end
+
+class LocalDockerConfig
+  YAML.mapping(
+    name: String,
+    type: LocalType, # enum ?
+    docker_image: String
+  )
+end
+
+alias LocalConfig =
+  LocalFileConfig |
+  LocalDockerConfig
 

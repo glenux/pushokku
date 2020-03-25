@@ -1,16 +1,14 @@
 
 require "colorize"
 
-class DockerImageToDokkuApp
-  def self.handler 
-    "docker_image_to_dokku_app"
-  end
-
-  def initialize(@local : LocalConfig, @remote : RemoteConfig, @deployment : DeploymentConfig)
+class DeploymentApp
+  def initialize(@local : LocalDockerConfig, @remote : RemoteConfig, @deployment : DeploymentAppConfig)
   end
 
   def run
-    image_meta = image_tag(@local.docker_image, config["app"])
+    dokku_app = @deployment.as(DeploymentAppConfig).dokku_app
+    app = dokku_app.name
+    image_meta = image_tag(@local.docker_image, app)
     image_push(@remote.host, image_meta["tag_name_version"])
     image_deploy(@remote.host, image_meta["app"], image_meta["version"])
   end
