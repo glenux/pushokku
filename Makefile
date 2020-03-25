@@ -1,5 +1,5 @@
 
-SOURCES=$(wildcard **/*.cr)
+SOURCES=$(shell find -name '*.cr')
 
 LDFLAGS=
 DESTDIR=/usr
