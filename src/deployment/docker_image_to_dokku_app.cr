@@ -1,8 +1,8 @@
 
 require "colorize"
 
-class DeploymentApp
-  def initialize(@local : LocalDockerConfig, @remote : RemoteConfig, @deployment : DeploymentAppConfig)
+class DockerImageToDokkuAppDeployment
+  def initialize(@local : DockerImageLocalConfig, @remote : RemoteConfig, @deployment : DokkuAppDeploymentConfig)
   end
 
   def run

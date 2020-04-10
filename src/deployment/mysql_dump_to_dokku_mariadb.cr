@@ -1,5 +1,5 @@
 
-class DeploymentMariadb
+class MysqlDumpToDokkuMariadbDeployment
   def initialize(@local : LocalFileConfig, @remote : RemoteConfig, @deployment : DeploymentMariadbConfig)
   end
 

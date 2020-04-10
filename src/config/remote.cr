@@ -1,11 +1,19 @@
 
 require "yaml"
 
-class RemoteConfig
+class DokkuRemoteConfigSettings
   YAML.mapping(
-    name: String,
     user: String,
     host: String
   )
 end
 
+class DokkuRemoteConfig
+  YAML.mapping(
+    name: String,
+    dokku: DokkuRemoteConfigSettings
+  )
+end
+
+alias RemoteConfig =
+  DokkuRemoteConfig

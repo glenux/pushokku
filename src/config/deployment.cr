@@ -1,37 +1,37 @@
 
 require "yaml"
 
-class DokkuMariadbConfig
+class DokkuMariadbDeploymentConfigSettings
   YAML.mapping(
     name: String,
     options: YAML::Any | Nil
   )
 end
 
-class DokkuAppConfig
+class DokkuAppDeploymentConfigSettings
   YAML.mapping(
     name: String,
     options: YAML::Any | Nil
   )
 end
 
-class DeploymentMariadbConfig
+class DokkuMariadbDeploymentConfig
   YAML.mapping(
     local: String,
     remote: String,
-    dokku_mariadb: DokkuMariadbConfig,
+    dokku_mariadb: DokkuMariadbDeploymentConfigSettings,
   )
 end
 
-class DeploymentAppConfig
+class DokkuAppDeploymentConfig
   YAML.mapping(
     local: String,
     remote: String,
-    dokku_app: DokkuAppConfig,
+    dokku_app: DokkuAppDeploymentConfigSettings,
   )
 end
 
 alias DeploymentConfig = 
-  DeploymentMariadbConfig | 
-  DeploymentAppConfig
+  DokkuMariadbDeploymentConfig | 
+  DokkuAppDeploymentConfig
 

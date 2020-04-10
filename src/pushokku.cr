@@ -75,6 +75,42 @@ module Pushokku
     end
 
 
+    def self.handle_deployment(config : Config, deployment_config : DeploymentConfig) 
+        local = config.locals.select { |l| l.name == deployment_config.local }.first
+        remote = config.remotes.select { |r| r.name == deployment_config.remote }.first
+
+        if local.nil?
+          puts "Unknown local #{deployment_config.local}. Exiting."
+          exit 2
+        end
+
+        if remote.nil?
+          puts "Unknown remote #{deployment_config.remote}. Exiting."
+          exit 2
+        end
+
+        deployment = 
+          case deployment_config
+          when DokkuAppDeploymentConfig then
+            DockerImageToDokkuAppDeployment.new(
+              local.as(DockerImageLocalConfig), 
+              remote, 
+              deployment_config.as(DokkuAppDeploymentConfig)
+            )
+          when MysqlDumpToDokkuMariadbDeployment then
+            DeploymentMariadb.new(
+              local.as(MysqlDumpLocalConfig), 
+              remote, 
+              deployment_config.as(DokkuMariadbDeploymentConfig)
+            )
+          when Nil
+            nil
+          end
+
+        next if deployment.nil?
+        deployment.run
+    end
+
     def self.run(args) 
       app = Cli.new
       opts = app.parse_options(args)
@@ -82,31 +118,7 @@ module Pushokku
       # env_config = App.get_config(config, opts["environment"])
 
       config.deployments.each do |deployment_config|
-        local = config.locals.select { |l| l.name == deployment_config.local }.first
-        remote = config.remotes.select { |r| r.name == deployment_config.remote }.first
-        if local.nil?
-          puts "Unknown local #{deployment_config.local}. Exiting."
-          exit 2
-        end
-        if remote.nil?
-          puts "Unknown remote #{deployment_config.remote}. Exiting."
-          exit 2
-        end
-
-
-        deployment = 
-          case deployment_config
-          when DeploymentAppConfig then
-
-            DeploymentApp.new(local.as(LocalDockerConfig), remote, deployment_config.as(DeploymentAppConfig))
-          when DeploymentMariadbConfig then
-            DeploymentMariadb.new(local.as(LocalFileConfig), remote, deployment_config.as(DeploymentMariadbConfig))
-          when Nil
-            nil
-          end
-
-        next if deployment.nil?
-        deployment.run
+        handle_deployment(config, deployment_config)
       end
 
       exit 2

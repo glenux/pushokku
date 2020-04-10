@@ -1,32 +1,47 @@
 
 require "yaml"
 
-enum LocalType
-  DOCKER_IMAGE = 1
-  MYSQL_DUMP = 2
-
-  def to_yaml(io)
-    to_s(io)
-  end
-end
-
-class LocalFileConfig
+class ScriptLocalConfigSettings
   YAML.mapping(
-    name: String,
-    type: LocalType, # enum ?
     path: String
   )
 end
 
-class LocalDockerConfig
+class MysqlDumpLocalConfigSettings
+  YAML.mapping(
+    path: String
+  )
+end
+
+class DockerImageLocalConfigSettings
+  YAML.mapping(
+    name: String
+  )
+end
+
+class ScriptLocalConfig
   YAML.mapping(
     name: String,
-    type: LocalType, # enum ?
-    docker_image: String
+    script: ScriptLocalConfigSettings
+  )
+end
+
+class MysqlDumpLocalConfig
+  YAML.mapping(
+    name: String,
+    mysql_dump: MysqlDumpLocalConfigSettings
+  )
+end
+
+class DockerImageLocalConfig
+  YAML.mapping(
+    name: String,
+    docker_image: DockerImageLocalConfigSettings
   )
 end
 
 alias LocalConfig =
-  LocalFileConfig |
-  LocalDockerConfig
+  DockerImageLocalConfig |
+  MysqlDumpLocalConfig |
+  ScriptLocalConfig
 
