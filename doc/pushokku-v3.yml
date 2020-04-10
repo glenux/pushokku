@@ -1,0 +1,60 @@
+---
+version: "3"
+
+hosts:
+  - name: local
+    localhost: {}
+
+  - name: testing
+    ssh:
+      user: debian
+      host: shiva-ratri.infra.boldcode.io
+
+
+endpoints:
+  # Local endpoints
+  - name: local-wp-image
+    host: local
+    docker_image:
+      name: sans-a-site-v2-wordpress_wordpress
+
+  - name: local-db-dump
+    host: local
+    mysql_dump:
+      path: database.sql
+
+  - name: local-db-script
+    host: local
+    script:
+      path: .pushokku/post-update.sh
+
+  # Remote endpoints
+  - name: remote-wp-app
+    host: testing
+    dokku_app:
+      name: customer-sans-a-site
+
+  - name: remote-wp-db
+    host: testing
+    dokku_mariadb:
+      name: customer-sans-a-wpsandbox
+
+
+filters:
+  - name: compress
+    cmd_in: gzip -
+    cmd_out: gunzip -
+
+
+deployments:
+  - copy:
+      local: local-wp-image
+      remote: remote-wp-app
+
+  - copy:
+      local: local-db-dump
+      remote: remote-wp-db
+
+  - run:
+      local: local-db-script
+      remote: remote-wp-app
