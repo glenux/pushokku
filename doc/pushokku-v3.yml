@@ -47,11 +47,11 @@ filters:
 
 
 deployments:
-  - copy:
+  - transfer:
       local: local-wp-image
       remote: remote-wp-app
 
-  - copy:
+  - transfer:
       local: local-db-dump
       remote: remote-wp-db
 
