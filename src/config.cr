@@ -1,6 +1,6 @@
 
 require "yaml"
-require "./config/*.cr"
+require "./config/*"
 
 class Config
   YAML.mapping(
