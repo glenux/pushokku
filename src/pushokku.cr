@@ -111,17 +111,38 @@ module Pushokku
         deployment.run
     end
 
+
+    def self.find_filter(config, name)
+      matches = config.filters.select { |filter| filter.name == name }
+      if matches.size > 1 
+        raise "Multiple filters have the same name (unicity)"
+      end
+      return matches.first
+    end
+
+    def self.validate_config!(config)
+      pp config
+      #config.deployments.each do |deployment_config|
+        # handle_deployment(config, deployment_config)
+      #end
+    end
+
+    def self.apply_config!(config)
+      config.deployments.each do |deployment_config|
+        # handle_deployment(config, deployment_config)
+      end
+    end
+
     def self.run(args) 
       app = Cli.new
       opts = app.parse_options(args)
       config = app.load_config(opts["config_file"])
       # env_config = App.get_config(config, opts["environment"])
 
-      config.deployments.each do |deployment_config|
-        handle_deployment(config, deployment_config)
-      end
+      validate_config!(config)
+      apply_config!(config)
 
-      exit 2
+      exit 0
     end
   end
 end
