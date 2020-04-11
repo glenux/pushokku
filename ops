@@ -1,1 +1,1 @@
-{"version":1,"ops":[{"type":1,"author":{"name":"Glenn Y. Rolland","email":"glenux@glenux.net","login":"","avatar_url":""},"timestamp":1586634927,"title":"Apply deployments with V3 config structure","message":"","files":null}]}
+{"version":1,"ops":[{"type":5,"author":{"name":"Glenn Y. Rolland","email":"glenux@glenux.net","login":"","avatar_url":""},"timestamp":1586635720,"added":["severity:critical"],"removed":null}]}
