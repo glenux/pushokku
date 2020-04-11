@@ -1,1 +1,1 @@
-{"version":1,"ops":[{"type":1,"author":{"name":"Glenn Y. Rolland","email":"glenux@glenux.net","login":"","avatar_url":""},"timestamp":1586634990,"title":"Apply filters of type MonoFilterConfig during deployment","message":"","files":null}]}
+{"version":1,"ops":[{"type":5,"author":{"name":"Glenn Y. Rolland","email":"glenux@glenux.net","login":"","avatar_url":""},"timestamp":1586635066,"added":["minor","new-feature"],"removed":null}]}
