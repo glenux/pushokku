@@ -1,1 +1,1 @@
-{"version":1,"ops":[{"type":5,"author":{"name":"Glenn Y. Rolland","email":"glenux@glenux.net","login":"","avatar_url":""},"timestamp":1586555360,"added":["new-feature","major"],"removed":null}]}
+{"version":1,"ops":[{"type":4,"author":{"name":"Glenn Y. Rolland","email":"glenux@glenux.net","login":"","avatar_url":""},"timestamp":1586635798,"status":2},{"type":5,"author":{"name":"Glenn Y. Rolland","email":"glenux@glenux.net","login":"","avatar_url":""},"timestamp":1586635820,"added":["severity:wishlist"],"removed":["major","new-feature"]}]}
