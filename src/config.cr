@@ -1,9 +1,13 @@
 
 require "yaml"
-require "./config/config"
-require "./config/local"
-require "./config/remote"
-require "./config/deployment"
+require "./config/*"
 
-
-
+class Config
+  YAML.mapping(
+    version: String,
+    hosts: Array(HostConfig),
+    endpoints: Array(EndpointConfig),
+    filters: Array(FilterConfig),
+    deployments: Array(DeploymentConfig)
+  )
+end

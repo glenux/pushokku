@@ -1,11 +1,9 @@
 
 require "yaml"
 
-class RemoteConfig
+class SshHostConfigSettings
   YAML.mapping(
-    name: String,
     user: String,
     host: String
   )
 end
-

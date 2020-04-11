@@ -75,41 +75,74 @@ module Pushokku
     end
 
 
-    def self.run(args) 
-      app = Cli.new
-      opts = app.parse_options(args)
-      config = app.load_config(opts["config_file"])
-      # env_config = App.get_config(config, opts["environment"])
-
-      config.deployments.each do |deployment_config|
+    def self.handle_deployment(config : Config, deployment_config : DeploymentConfig) 
         local = config.locals.select { |l| l.name == deployment_config.local }.first
         remote = config.remotes.select { |r| r.name == deployment_config.remote }.first
+
         if local.nil?
           puts "Unknown local #{deployment_config.local}. Exiting."
           exit 2
         end
+
         if remote.nil?
           puts "Unknown remote #{deployment_config.remote}. Exiting."
           exit 2
         end
 
-
         deployment = 
           case deployment_config
-          when DeploymentAppConfig then
-
-            DeploymentApp.new(local.as(LocalDockerConfig), remote, deployment_config.as(DeploymentAppConfig))
-          when DeploymentMariadbConfig then
-            DeploymentMariadb.new(local.as(LocalFileConfig), remote, deployment_config.as(DeploymentMariadbConfig))
+          when DokkuAppDeploymentConfig then
+            DockerImageToDokkuAppDeployment.new(
+              local.as(DockerImageLocalConfig), 
+              remote, 
+              deployment_config.as(DokkuAppDeploymentConfig)
+            )
+          when MysqlDumpToDokkuMariadbDeployment then
+            DeploymentMariadb.new(
+              local.as(MysqlDumpLocalConfig), 
+              remote, 
+              deployment_config.as(DokkuMariadbDeploymentConfig)
+            )
           when Nil
             nil
           end
 
         next if deployment.nil?
         deployment.run
-      end
+    end
 
-      exit 2
+
+    def self.find_filter(config, name)
+      matches = config.filters.select { |filter| filter.name == name }
+      if matches.size > 1 
+        raise "Multiple filters have the same name (unicity)"
+      end
+      return matches.first
+    end
+
+    def self.validate_config!(config)
+      pp config
+      #config.deployments.each do |deployment_config|
+        # handle_deployment(config, deployment_config)
+      #end
+    end
+
+    def self.apply_config!(config)
+      config.deployments.each do |deployment_config|
+        # handle_deployment(config, deployment_config)
+      end
+    end
+
+    def self.run(args) 
+      app = Cli.new
+      opts = app.parse_options(args)
+      config = app.load_config(opts["config_file"])
+      # env_config = App.get_config(config, opts["environment"])
+
+      validate_config!(config)
+      apply_config!(config)
+
+      exit 0
     end
   end
 end
