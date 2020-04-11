@@ -42,19 +42,20 @@ endpoints:
 
 filters:
   - name: compress
-    cmd_in: gzip -
-    cmd_out: gunzip -
+    dual:
+      cmd_in: gzip -
+      cmd_out: gunzip -
 
 
 deployments:
   - transfer:
-      local: local-wp-image
-      remote: remote-wp-app
+      src: local-wp-image
+      dest: remote-wp-app
 
   - transfer:
-      local: local-db-dump
-      remote: remote-wp-db
+      src: local-db-dump
+      dest: remote-wp-db
 
   - run:
-      local: local-db-script
-      remote: remote-wp-app
+      src: local-db-script
+      dest: remote-wp-app
