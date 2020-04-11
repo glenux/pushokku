@@ -1,5 +1,6 @@
 
 require "yaml"
+require "./deployment_settings"
 
 class RunDeploymentConfig
   YAML.mapping(
