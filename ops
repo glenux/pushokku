@@ -1,1 +1,1 @@
-{"version":1,"ops":[{"type":1,"author":{"name":"Glenn Y. Rolland","email":"glenux@glenux.net","login":"","avatar_url":""},"timestamp":1586635553,"title":"CONFIG","message":"","files":null}]}
+{"version":1,"ops":[{"type":5,"author":{"name":"Glenn Y. Rolland","email":"glenux@glenux.net","login":"","avatar_url":""},"timestamp":1586635615,"added":["severity:wishlist","severity:fixed","severity:minor","severity:normal","severity:important","severity:serious","severity:grave","severity:critical"],"removed":null}]}
