@@ -31,6 +31,52 @@ Welcome to Pushokku!
     -h, --help                       Show help
 ```
 
+## Configuration
+
+Add a `.pushokku.yml` file to the root directory of your projet, with the
+following content:
+
+```
+---
+version: "2"
+
+locals:
+
+  # Some container you want to deploy
+  - name: my-app
+    type: docker_image
+    docker_image: my-site-v2-wordpress_wordpress
+
+  # Some database dump you want to deploy
+  - name: my-db
+    type: mysql_dump
+    path: database.sql
+
+remotes:
+
+  # Some remote dokku server
+  - name: testing-server
+    user: debian
+    host: dokku02.infra.example.com
+
+deployments:
+
+  # Associate local container with remote app
+  - local: my-app
+    remote: dokku-dokku02
+    dokku_app:
+      name: customer-my-site
+
+  # Associate local dump with remote mariadb
+  - local: my-db
+    remote: testing-server
+    dokku_mariadb:
+      name: customer-my-appsandbox
+
+  # Simply run `pushokku` and that's done!
+
+```
+
 ## Contributing
 
 1. Fork it (<https://github.com/glenux/pushokku/fork>)
