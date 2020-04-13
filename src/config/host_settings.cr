@@ -6,4 +6,8 @@ class SshHostConfigSettings
     user: String,
     host: String
   )
+
+  def to_s 
+    "#{user}@#{host}"
+  end
 end

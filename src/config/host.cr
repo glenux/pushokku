@@ -7,6 +7,10 @@ class LocalHostConfig
     name: String,
     localhost: Hash(String, YAML::Any)
   )
+
+  def to_s
+    "LocalHost[#{name}]"
+  end
 end
 
 
@@ -15,6 +19,9 @@ class SshHostConfig
     name: String,
     ssh: SshHostConfigSettings
   )
+  def to_s
+    "SshHost[#{name}]"
+  end
 end
 
 alias HostConfig = 

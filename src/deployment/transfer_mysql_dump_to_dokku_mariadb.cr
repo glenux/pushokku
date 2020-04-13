@@ -1,13 +1,15 @@
 
-class MysqlDumpToDokkuMariadbDeployment
-  def initialize(@local : LocalFileConfig, @remote : RemoteConfig, @deployment : DeploymentMariadbConfig)
-  end
+class Deployment
 
-  def run
-    dokku_mariadb = @deployment.dokku_mariadb.as(DokkuMariadbConfig)
-    local_path = @local.path
+  def self.apply_transfer!(
+    config : Config, 
+    src : MysqlDumpEndpointConfig, 
+    dest : DokkuMariadbEndpointConfig 
+  )
+    dokku_mariadb = dest.name
+    # local_path = @local.path
     # puts @local.inspect
-    file_push(@remote.host, local_path, dokku_mariadb.name)
+    # file_push(@remote.host, local_path, dokku_mariadb.name)
   end
 
   private def file_push(host, local_path, dokku_mariadb_name)
